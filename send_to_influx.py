@@ -15,11 +15,12 @@ def write_control_frequency(freq):
         write_api.write(bucket=BUCKET, org=ORG, record=point)
 
 def write_control_enable(enabled):
-    value = 1 if enabled else 0
+    value = 1.0 if enabled else 0.0  # Always float
     with InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=ORG) as client:
         write_api = client.write_api(write_options=SYNCHRONOUS)
         point = Point("control").field("enable", value).time(time.time_ns())
         write_api.write(bucket=BUCKET, org=ORG, record=point)
+
 
 def read_latest_status():
     query = f'''
