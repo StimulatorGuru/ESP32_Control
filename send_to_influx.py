@@ -2,35 +2,47 @@ import requests
 import time
 import pandas as pd
 import matplotlib.pyplot as plt
-from influxdb_client import InfluxDBClient, Point, Dialect
+from influxdb_client import InfluxDBClient
 
-# --- InfluxDB Cloud Settings ---
+# InfluxDB Cloud Settings
 INFLUX_URL = "https://us-east-1-1.aws.cloud2.influxdata.com"
 INFLUX_TOKEN = "qnAf-nmTbQPvEijcvmaQPOIK1qduzw57-reWjnQR90A2mdlsXWaNPmZ6dkISYQHMqHxzfESMxlT9wx5xYsyIuQ=="
 ORG = "fb5d2e4c3ef2040a"
 BUCKET = "Tens"
 
-# === 1. Function: Write Control Frequency ===
 def write_control_frequency(freq):
     url = f"{INFLUX_URL}/api/v2/write"
+    headers = {
+        "Authorization": f"Token {INFLUX_TOKEN}",
+        "Content-Type": "text/plain"
+    }
     params = {
         "org": ORG,
         "bucket": BUCKET,
         "precision": "s"
     }
+    timestamp = int(time.time())
+    data = f"control frequency={freq} {timestamp}"
+    response = requests.post(url, headers=headers, params=params, data=data)
+    print(f"[WRITE FREQ] {response.status_code}: {response.text.strip()}")
 
+def write_control_enable(enabled):
+    url = f"{INFLUX_URL}/api/v2/write"
     headers = {
         "Authorization": f"Token {INFLUX_TOKEN}",
         "Content-Type": "text/plain"
     }
-
+    params = {
+        "org": ORG,
+        "bucket": BUCKET,
+        "precision": "s"
+    }
+    value = 1 if enabled else 0
     timestamp = int(time.time())
-    data = f"control frequency={freq} {timestamp}"
+    data = f"control enable={value} {timestamp}"
+    response = requests.post(url, headers=headers, params=params, data=data)
+    print(f"[WRITE ENABLE] {response.status_code}: {response.text.strip()}")
 
-    response = requests.post(url, params=params, headers=headers, data=data)
-    print(f"[WRITE] Status: {response.status_code}, Message: {response.text.strip()}")
-
-# === 2. Function: Read Settings (frequency, duty cycle, pulse width) ===
 def read_settings_data(minutes=5):
     query = f'''
     from(bucket: "{BUCKET}")
@@ -42,10 +54,7 @@ def read_settings_data(minutes=5):
 
     with InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=ORG) as client:
         tables = client.query_api().query_data_frame(query)
-        if isinstance(tables, list) and len(tables) > 0:
-            df = pd.concat(tables, ignore_index=True)
-        else:
-            df = tables
+        df = pd.concat(tables, ignore_index=True) if isinstance(tables, list) else tables
 
     if df.empty:
         print("[READ] No data found.")
@@ -54,7 +63,6 @@ def read_settings_data(minutes=5):
         df = df.set_index("_time")
     return df
 
-# === 3. Function: Visualize Data ===
 def visualize_settings_data(df):
     if df.empty:
         print("No data to plot.")
@@ -86,12 +94,11 @@ def visualize_settings_data(df):
 
 # === USAGE ===
 
-# Step 1: Write control frequency (optional)
-write_control_frequency(freq=25.0)  # Change frequency as needed
+# Set frequency and enable/disable
+write_control_frequency(freq=30.0)
+write_control_enable(enabled=True)  # True to enable, False to disable
 
-# Step 2: Wait for ESP32 to read and respond
-time.sleep(10)
+time.sleep(5)
 
-# Step 3: Read and visualize settings
 df = read_settings_data(minutes=5)
 visualize_settings_data(df)
