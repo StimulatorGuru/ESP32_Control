@@ -4,8 +4,8 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 
 # InfluxDB Cloud Settings
 INFLUX_URL = "https://us-east-1-1.aws.cloud2.influxdata.com"
-INFLUX_TOKEN = "your_token_here"
-ORG = "your_org_here"
+INFLUX_TOKEN = "qnAf-nmTbQPvEijcvmaQPOIK1qduzw57-reWjnQR90A2mdlsXWaNPmZ6dkISYQHMqHxzfESMxlT9wx5xYsyIuQ=="
+ORG = "fb5d2e4c3ef2040a"
 BUCKET = "Tens"
 
 def write_control_frequency(freq):
