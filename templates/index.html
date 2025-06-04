@@ -1,25 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Muscle Stimulator Control</title>
-  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <div class="background"></div>
   <div class="container">
-    <h1>Muscle Stimulator Control</h1>
-    <div class="gauge-container">
-      <canvas id="freq-gauge" width="200" height="200"></canvas>
-    </div>
+    <h1>Muscle Stimulator Control Panel</h1>
+
     <form id="freq-form">
-      <label for="freq">Set Frequency (Hz)</label>
-      <input type="number" id="freq" name="freq" min="2" max="150" required />
-      <button type="submit">Apply</button>
+      <label for="freq">Frequency (Hz):</label>
+      <input type="number" id="freq" name="freq" min="2" max="150" required>
+      <button type="submit">Set Frequency</button>
     </form>
+
+    <div class="toggle-container">
+      <label>Pulses:</label>
+      <button id="toggle-btn">Enable</button>
+    </div>
+
     <p id="response"></p>
   </div>
-  <script src="/static/gauge.min.js"></script>
+
   <script src="/static/script.js"></script>
 </body>
 </html>
