@@ -17,13 +17,13 @@ def write_control_frequency(freq: float):
         write_api.write(bucket=BUCKET, org=ORG, record=point)
 
 def write_control_enable(enabled: bool):
-    """Writes the enable status to the 'control' measurement (1 or 0 as integer)"""
-    val = 1 if enabled else 0
+    val = 1.0 if enabled else 0.0  # Write as float to match existing schema
     print(f"[WRITE] Setting enable to: {val}")
     with InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=ORG) as client:
         write_api = client.write_api(write_options=SYNCHRONOUS)
         point = Point("control").field("enable", val).time(time.time_ns())
         write_api.write(bucket=BUCKET, org=ORG, record=point)
+
 
 def read_latest_status():
     """Reads the most recent settings and enable state from InfluxDB"""
