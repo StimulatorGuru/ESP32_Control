@@ -1,64 +1,69 @@
-const freqSlider = document.getElementById("freq-slider");
-const freqValue = document.getElementById("freq-value");
-const setFreqBtn = document.getElementById("set-freq-btn");
-const toggleBtn = document.getElementById("toggle-btn");
-const responseElement = document.getElementById("response");
+document.addEventListener("DOMContentLoaded", () => {
+  const freqSlider = document.getElementById("freq");
+  const freqValue = document.getElementById("freq-value");
+  const toggleBtn = document.getElementById("toggle-btn");
+  const responseElement = document.getElementById("response");
+  const freqStatus = document.getElementById("freqStatus");
+  const pulseWidthStatus = document.getElementById("pulseWidthStatus");
+  const enableStatus = document.getElementById("enableStatus");
 
-// Status display
-const pulseStatusDisplay = document.getElementById("pulse-status");
-const currentFreqDisplay = document.getElementById("current-freq");
-const pulseWidthDisplay = document.getElementById("pulse-width");
+  // Update frequency display
+  freqSlider.addEventListener("input", () => {
+    freqValue.textContent = freqSlider.value;
+  });
 
-// Update displayed frequency when slider moves
-freqSlider.addEventListener("input", () => {
-  freqValue.textContent = freqSlider.value;
-});
+  // Send frequency to server
+  freqSlider.addEventListener("change", async () => {
+    const freq = freqSlider.value;
+    try {
+      const response = await fetch("/set", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ freq: parseFloat(freq) })
+      });
+      const data = await response.json();
+      responseElement.textContent = data.message;
+      responseElement.style.color = response.ok ? "green" : "red";
+    } catch (error) {
+      responseElement.textContent = "Error connecting to server.";
+      responseElement.style.color = "red";
+    }
+  });
 
-// Set frequency
-setFreqBtn.addEventListener("click", async () => {
-  const freq = freqSlider.value;
-  try {
-    const response = await fetch(`/set?freq=${freq}`);
-    const text = await response.text();
-    responseElement.textContent = text;
-    responseElement.style.color = response.ok ? "green" : "red";
-    updateStatus();
-  } catch {
-    responseElement.textContent = "Error setting frequency.";
-    responseElement.style.color = "red";
+  // Toggle enable/disable
+  toggleBtn.addEventListener("click", async () => {
+    const enable = toggleBtn.textContent === "Enable";
+    try {
+      const response = await fetch("/toggle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enable })
+      });
+      const data = await response.json();
+      toggleBtn.textContent = enable ? "Disable" : "Enable";
+      responseElement.textContent = data.message;
+      responseElement.style.color = response.ok ? "green" : "red";
+    } catch (error) {
+      responseElement.textContent = "Error connecting to server.";
+      responseElement.style.color = "red";
+    }
+  });
+
+  // Fetch status periodically
+  async function fetchStatus() {
+    try {
+      const response = await fetch("/status");
+      const data = await response.json();
+      freqStatus.textContent = data.frequency.toFixed(2);
+      pulseWidthStatus.textContent = data.totalPulseWidth.toFixed(0);
+      enableStatus.textContent = data.enabled ? "Enabled" : "Disabled";
+    } catch (error) {
+      freqStatus.textContent = "--";
+      pulseWidthStatus.textContent = "--";
+      enableStatus.textContent = "Unavailable";
+    }
   }
+
+  fetchStatus();
+  setInterval(fetchStatus, 5000);
 });
-
-// Toggle pulses
-toggleBtn.addEventListener("click", async () => {
-  const enable = toggleBtn.textContent === "Enable";
-  try {
-    const response = await fetch(`/toggle?enable=${enable}`);
-    const text = await response.text();
-    toggleBtn.textContent = enable ? "Disable" : "Enable";
-    responseElement.textContent = text;
-    responseElement.style.color = response.ok ? "green" : "red";
-    updateStatus();
-  } catch {
-    responseElement.textContent = "Error toggling pulses.";
-    responseElement.style.color = "red";
-  }
-});
-
-// Fetch status (pulse enabled, frequency, width)
-async function updateStatus() {
-  try {
-    const res = await fetch("/status");
-    const data = await res.json();
-    pulseStatusDisplay.textContent = data.enabled ? "Enabled" : "Disabled";
-    currentFreqDisplay.textContent = data.frequency;
-    pulseWidthDisplay.textContent = data.totalPulseWidth;
-  } catch {
-    pulseStatusDisplay.textContent = "Unavailable";
-    currentFreqDisplay.textContent = "--";
-    pulseWidthDisplay.textContent = "--";
-  }
-}
-
-updateStatus();
-setInterval(updateStatus, 5000); // Refresh every 5s
