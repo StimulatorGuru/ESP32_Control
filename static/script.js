@@ -15,3 +15,21 @@ document.getElementById("freq-form").addEventListener("submit", async (e) => {
     responseElement.style.color = "red";
   }
 });
+
+document.getElementById("toggle-btn").addEventListener("click", async () => {
+  const button = document.getElementById("toggle-btn");
+  const enable = button.textContent === "Enable";
+  const responseElement = document.getElementById("response");
+
+  try {
+    const response = await fetch(`/toggle?enable=${enable}`);
+    const text = await response.text();
+
+    button.textContent = enable ? "Disable" : "Enable";
+    responseElement.textContent = text;
+    responseElement.style.color = response.ok ? "green" : "red";
+  } catch (error) {
+    responseElement.textContent = "Error connecting to server.";
+    responseElement.style.color = "red";
+  }
+});
