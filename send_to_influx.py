@@ -8,7 +8,7 @@ from influxdb_client import InfluxDBClient, Point, Dialect
 INFLUX_URL = "https://us-east-1-1.aws.cloud2.influxdata.com"
 INFLUX_TOKEN = "qnAf-nmTbQPvEijcvmaQPOIK1qduzw57-reWjnQR90A2mdlsXWaNPmZ6dkISYQHMqHxzfESMxlT9wx5xYsyIuQ=="
 ORG = "fb5d2e4c3ef2040a"
-BUCKET = "IOT_control"
+BUCKET = "Tens"
 
 # === 1. Function: Write Control Frequency ===
 def write_control_frequency(freq):
