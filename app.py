@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template
-from send_to_influx import write_control_frequency, write_control_enable
+from send_to_influx import write_control_frequency, write_control_enable, read_latest_status
 
 app = Flask(__name__)
 
@@ -27,6 +27,14 @@ def toggle_enable():
         return f"Pulses {'enabled' if enable else 'disabled'}.", 200
     except:
         return "Invalid enable value", 400
+
+@app.route("/status")
+def status():
+    try:
+        data = read_latest_status()
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500        
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
