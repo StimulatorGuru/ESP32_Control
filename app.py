@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
 from send_to_influx import write_control_frequency, write_control_enable, read_latest_status
 
 app = Flask(__name__)
@@ -7,34 +7,42 @@ app = Flask(__name__)
 def index():
     return render_template("index.html")
 
-@app.route("/set", methods=["GET"])
+@app.route("/set", methods=["POST"])
 def set_frequency():
+    data = request.get_json()
+    freq = data.get("freq")
+    if freq is None:
+        return jsonify({"message": "Frequency not provided."}), 400
     try:
-        freq = float(request.args.get("freq"))
+        freq = float(freq)
         if 2 <= freq <= 150:
             write_control_frequency(freq)
-            return f"Frequency set to {freq} Hz", 200
+            return jsonify({"message": f"Frequency set to {freq} Hz."}), 200
         else:
-            return "Frequency out of range (2-150 Hz)", 400
-    except:
-        return "Invalid frequency", 400
+            return jsonify({"message": "Frequency out of range (2-150 Hz)."}), 400
+    except ValueError:
+        return jsonify({"message": "Invalid frequency value."}), 400
 
-@app.route("/toggle", methods=["GET"])
+@app.route("/toggle", methods=["POST"])
 def toggle_enable():
+    data = request.get_json()
+    enable = data.get("enable")
+    if enable is None:
+        return jsonify({"message": "Enable state not provided."}), 400
     try:
-        enable = request.args.get("enable").lower() == "true"
-        write_control_enable(enable)
-        return f"Pulses {'enabled' if enable else 'disabled'}.", 200
-    except:
-        return "Invalid enable value", 400
+        write_control_enable(bool(enable))
+        state = "enabled" if enable else "disabled"
+        return jsonify({"message": f"Pulses {state}."}), 200
+    except Exception as e:
+        return jsonify({"message": f"Error: {str(e)}"}), 500
 
 @app.route("/status")
 def status():
     try:
-        data = read_latest_status()
-        return jsonify(data)
+        status = read_latest_status()
+        return jsonify(status), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500        
+        return jsonify({"message": f"Error: {str(e)}"}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
