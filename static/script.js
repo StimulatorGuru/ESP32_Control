@@ -1,3 +1,4 @@
+// --- Existing control/feedback logic unchanged ---
 document.addEventListener("DOMContentLoaded", () => {
   const freqSlider = document.getElementById("freq");
   const freqValue = document.getElementById("freq-value");
@@ -7,63 +8,95 @@ document.addEventListener("DOMContentLoaded", () => {
   const pulseWidthStatus = document.getElementById("pulseWidthStatus");
   const enableStatus = document.getElementById("enableStatus");
 
-  // Update frequency display
   freqSlider.addEventListener("input", () => {
     freqValue.textContent = freqSlider.value;
   });
-
-  // Send frequency to server
   freqSlider.addEventListener("change", async () => {
     const freq = freqSlider.value;
     try {
-      const response = await fetch("/set", {
+      const res = await fetch("/set", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ freq: parseFloat(freq) })
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({freq: parseFloat(freq)})
       });
-      const data = await response.json();
+      const data = await res.json();
       responseElement.textContent = data.message;
-      responseElement.style.color = response.ok ? "green" : "red";
-    } catch (error) {
+      responseElement.style.color = res.ok ? "green" : "red";
+    } catch {
       responseElement.textContent = "Error connecting to server.";
       responseElement.style.color = "red";
     }
   });
 
-  // Toggle enable/disable
   toggleBtn.addEventListener("click", async () => {
     const enable = toggleBtn.textContent === "Enable";
     try {
-      const response = await fetch("/toggle", {
+      const res = await fetch("/toggle", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enable })
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({enable})
       });
-      const data = await response.json();
+      const data = await res.json();
       toggleBtn.textContent = enable ? "Disable" : "Enable";
       responseElement.textContent = data.message;
-      responseElement.style.color = response.ok ? "green" : "red";
-    } catch (error) {
+      responseElement.style.color = res.ok ? "green" : "red";
+    } catch {
       responseElement.textContent = "Error connecting to server.";
       responseElement.style.color = "red";
     }
   });
 
-  // Fetch status periodically
   async function fetchStatus() {
     try {
-      const response = await fetch("/status");
-      const data = await response.json();
+      const res = await fetch("/status");
+      const data = await res.json();
       freqStatus.textContent = data.frequency.toFixed(2);
       pulseWidthStatus.textContent = data.totalPulseWidth.toFixed(0);
       enableStatus.textContent = data.enabled ? "Enabled" : "Disabled";
-    } catch (error) {
+    } catch {
       freqStatus.textContent = "--";
       pulseWidthStatus.textContent = "--";
       enableStatus.textContent = "Unavailable";
     }
   }
-
   fetchStatus();
   setInterval(fetchStatus, 5000);
+
+  // --- Sinewave visualization ---
+  const ctx = document.getElementById('sineChart').getContext('2d');
+  const sineChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: Array.from({length: 50}, (_, i) => i),
+      datasets: [{
+        label: 'Sinewave',
+        data: new Array(50).fill(0),
+        borderColor: 'blue',
+        borderWidth: 2,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      animation: false,
+      scales: {
+        y: { min: -1.2, max: 1.2 }
+      }
+    }
+  });
+
+  async function updateSinewave() {
+    try {
+      const res = await fetch("/sinewave");
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        sineChart.data.datasets[0].data = data;
+        sineChart.update();
+      }
+    } catch (err) {
+      console.error("Failed loading sinewave", err);
+    }
+  }
+  updateSinewave();
+  setInterval(updateSinewave, 1000);  // update every second
 });
