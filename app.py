@@ -45,18 +45,15 @@ def status():
     except Exception as e:
         return jsonify({"message": f"Error: {str(e)}"}), 500
 
-@app.route("/sinewave")
+@app.route("/sinewave", methods=["GET"])
 def get_sinewave():
     try:
-        with open("sinewave.json", "r") as f:
-            data = f.read()
-        return app.response_class(
-            response=data,
-            status=200,
-            mimetype='application/json'
-        )
+        with open("sinewave_data.json", "r") as file:
+            data = file.read()
+        return app.response_class(data, content_type="application/json")
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"message": f"Error: {str(e)}"}), 500
+
 
 
 if __name__ == "__main__":
