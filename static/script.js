@@ -1,4 +1,3 @@
-// --- Existing control/feedback logic unchanged ---
 document.addEventListener("DOMContentLoaded", () => {
   const freqSlider = document.getElementById("freq");
   const freqValue = document.getElementById("freq-value");
@@ -8,9 +7,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const pulseWidthStatus = document.getElementById("pulseWidthStatus");
   const enableStatus = document.getElementById("enableStatus");
 
+  // Update frequency display
   freqSlider.addEventListener("input", () => {
     freqValue.textContent = freqSlider.value;
   });
+
+  // Send frequency to Flask server
   freqSlider.addEventListener("change", async () => {
     const freq = freqSlider.value;
     try {
@@ -28,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Toggle enable/disable pulses
   toggleBtn.addEventListener("click", async () => {
     const enable = toggleBtn.textContent === "Enable";
     try {
@@ -46,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Fetch stimulator status
   async function fetchStatus() {
     try {
       const res = await fetch("/status");
@@ -59,44 +63,61 @@ document.addEventListener("DOMContentLoaded", () => {
       enableStatus.textContent = "Unavailable";
     }
   }
+
   fetchStatus();
   setInterval(fetchStatus, 5000);
 
-  // --- Sinewave visualization ---
-  const ctx = document.getElementById('sineChart').getContext('2d');
-  const sineChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: Array.from({length: 50}, (_, i) => i),
-      datasets: [{
-        label: 'Sinewave',
-        data: new Array(50).fill(0),
-        borderColor: 'blue',
-        borderWidth: 2,
-        tension: 0.3
-      }]
-    },
-    options: {
-      responsive: true,
-      animation: false,
-      scales: {
-        y: { min: -1.2, max: 1.2 }
+  // --- Sinewave Visualization via Chart.js ---
+  const sineCanvas = document.getElementById("sineChart");
+  if (sineCanvas) {
+    const ctx = sineCanvas.getContext("2d");
+    const sineChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: Array.from({length: 50}, (_, i) => i),  // X-axis labels
+        datasets: [{
+          label: 'Sinewave (MATLAB)',
+          data: new Array(50).fill(0),  // Initial zero values
+          borderColor: 'blue',
+          borderWidth: 2,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        animation: false,
+        scales: {
+          y: {
+            min: -1.2,
+            max: 1.2,
+            title: {
+              display: true,
+              text: "Amplitude"
+            }
+          },
+          x: {
+            display: false
+          }
+        }
       }
-    }
-  });
+    });
 
-  async function updateSinewave() {
-    try {
-      const res = await fetch("/sinewave");
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        sineChart.data.datasets[0].data = data;
-        sineChart.update();
+    // Fetch sinewave data from Flask
+    async function updateSinewave() {
+      try {
+        const res = await fetch("/sinewave");
+        const data = await res.json();
+        const sine = data.sine;
+        if (Array.isArray(sine)) {
+          sineChart.data.datasets[0].data = sine.map(v => parseFloat(v));
+          sineChart.update();
+        }
+      } catch (err) {
+        console.error("❌ Failed to fetch sinewave:", err);
       }
-    } catch (err) {
-      console.error("Failed loading sinewave", err);
     }
+
+    updateSinewave();
+    setInterval(updateSinewave, 1000); // Update every second
   }
-  updateSinewave();
-  setInterval(updateSinewave, 1000);  // update every second
 });
