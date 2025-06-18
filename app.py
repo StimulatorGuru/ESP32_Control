@@ -48,13 +48,16 @@ def status():
 @app.route("/sinewave")
 def get_sinewave():
     try:
-        matlab_url = "http://YOUR_MATLAB_IP:8000"  # change this
-        resp = requests.get(matlab_url, timeout=2)
-        data = resp.text.strip().split(",")
-        values = [float(val) for val in data if val]
-        return jsonify(values)
+        with open("sinewave.json", "r") as f:
+            data = f.read()
+        return app.response_class(
+            response=data,
+            status=200,
+            mimetype='application/json'
+        )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
