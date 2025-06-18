@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template, jsonify
 from send_to_influx import write_control_frequency, write_control_enable, read_latest_status
+import requests
 
 app = Flask(__name__)
 
@@ -43,6 +44,17 @@ def status():
         return jsonify(status), 200
     except Exception as e:
         return jsonify({"message": f"Error: {str(e)}"}), 500
+
+@app.route("/sinewave")
+def get_sinewave():
+    try:
+        matlab_url = "http://YOUR_MATLAB_IP:8000"  # change this
+        resp = requests.get(matlab_url, timeout=2)
+        data = resp.text.strip().split(",")
+        values = [float(val) for val in data if val]
+        return jsonify(values)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
