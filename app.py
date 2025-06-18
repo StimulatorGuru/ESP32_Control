@@ -1,7 +1,5 @@
-from flask import Flask, request, render_template, jsonify, send_from_directory
+from flask import Flask, request, render_template, jsonify
 from send_to_influx import write_control_frequency, write_control_enable, read_latest_status
-import requests
-import os
 
 app = Flask(__name__)
 
@@ -45,20 +43,6 @@ def status():
         return jsonify(status), 200
     except Exception as e:
         return jsonify({"message": f"Error: {str(e)}"}), 500
-
-@app.route("/sinewave", methods=["GET"])
-def get_sinewave():
-    try:
-        with open("sinewave_data.json", "r") as file:
-            data = file.read()
-        return app.response_class(data, content_type="application/json")
-    except Exception as e:
-        return jsonify({"message": f"Error: {str(e)}"}), 500
-@app.route('/sinewave.png')
-def sinewave_image():
-    return send_from_directory('.', 'sinewave.png')
-
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
