@@ -27,11 +27,14 @@
     <p id="response"></p>
 
     <!-- New sinewave visualization section -->
-    <hr>
-    <h2>Live Sinewave from MATLAB</h2>
-    <canvas id="sinePlot" width="300" height="150" style="margin-top: 20px;"></canvas>
-  </div>
+    <h3>Live Sinewave from MATLAB</h3>
+<img id="sinePlot" src="/sinewave.png" alt="Sinewave plot" width="100%" />
+<script>
+  setInterval(() => {
+    const img = document.getElementById("sinePlot");
+    img.src = '/sinewave.png?t=' + new Date().getTime();  // Prevent caching
+  }, 1000);  // Refresh every 1 second
+</script>
 
-  <script src="/static/script.js"></script>
 </body>
 </html>
