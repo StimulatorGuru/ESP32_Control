@@ -1,6 +1,7 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, send_from_directory
 from send_to_influx import write_control_frequency, write_control_enable, read_latest_status
 import requests
+import os
 
 app = Flask(__name__)
 
@@ -53,6 +54,9 @@ def get_sinewave():
         return app.response_class(data, content_type="application/json")
     except Exception as e:
         return jsonify({"message": f"Error: {str(e)}"}), 500
+@app.route('/sinewave.png')
+def sinewave_image():
+    return send_from_directory('.', 'sinewave.png')
 
 
 
