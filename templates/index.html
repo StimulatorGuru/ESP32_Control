@@ -4,37 +4,30 @@
   <meta charset="UTF-8">
   <title>Electric Nerve Stimulator Control</title>
   <link rel="stylesheet" href="/static/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>Electric Nerve Stimulator Control Panel</h1>
 
-    <!-- Existing parts unchanged -->
     <div class="slider-container">
       <label for="freq">Frequency: <span id="freq-value">30</span> Hz</label>
       <input type="range" id="freq" name="freq" min="2" max="150" value="30">
     </div>
+
     <div class="toggle-container">
       <label>Pulses:</label>
       <button id="toggle-btn">Enable</button>
     </div>
+
     <div class="status">
       <p><strong>Current Frequency:</strong> <span id="freqStatus">--</span> Hz</p>
       <p><strong>Total Pulse Width:</strong> <span id="pulseWidthStatus">--</span> µs</p>
       <p><strong>Status:</strong> <span id="enableStatus">--</span></p>
     </div>
+
     <p id="response"></p>
+  </div>
 
-    <!-- New sinewave visualization section -->
-    <h3>Live Sinewave from MATLAB</h3>
-<img id="sinePlot" src="/sinewave.png" alt="Sinewave plot" width="100%" />
-<script>
-  setInterval(() => {
-    const img = document.getElementById("sinePlot");
-    img.src = '/sinewave.png?t=' + new Date().getTime();  // Prevent caching
-  }, 1000);  // Refresh every 1 second
-</script>
-
+  <script src="/static/script.js"></script>
 </body>
 </html>
